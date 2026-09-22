@@ -26,7 +26,12 @@ function Home({ setPage }) {
       </p>
 
       <div className="home-actions">
-        <button onClick={() => setPage("sorting")}>Open Sorting</button>
+        <button onClick={() => setPage("binarysearch")}>
+          Open Binary Search
+        </button>
+        <button onClick={() => setPage("sorting")}>
+          Open Sorting
+        </button>
         <button onClick={() => setPage("pathfinding")}>
           Open Path Finding
         </button>
