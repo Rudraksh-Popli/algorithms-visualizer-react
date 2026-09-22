@@ -75,10 +75,15 @@ export function getSortMoves(books, algorithm) {
 
     if (algorithm === "bubble") {
         for (let end = values.length - 1; end > 0; end -= 1) {
+            let swapped = false;
             for (let index = 0; index < end; index += 1) {
                 if (compare(index, index + 1) > 0) {
                     swap(index, index + 1);
+                    swapped = true;
                 }
+            }
+            if (!swapped) {
+                break;
             }
         }
     }
