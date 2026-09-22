@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import {
-  Book,
   createBooks,
+  getBinarySearchMoves,
   getPathResult,
   getSortMoves
 } from "./algorithms";
@@ -413,6 +413,182 @@ function PathFindingVisualizer() {
   );
 }
 
+function BinarySearchVisualizer() {
+  const [count, setCount] = useState(20);
+  const [speed, setSpeed] = useState(700);
+  const [books, setBooks] = useState(() => createSortedBooks(20));
+  const [selectedIndex, setSelectedIndex] = useState(null);
+  const [activeIndex, setActiveIndex] = useState(null);
+  const [running, setRunning] = useState(false);
+  const [message, setMessage] = useState("");
+  const runId = useRef(0);
+
+  function createSortedBooks(bookCount) {
+    return createBooks(bookCount).sort((left, right) =>
+      left.name.localeCompare(right.name)
+    );
+  }
+
+  function generateBooks(bookCount = count) {
+    runId.current += 1;
+
+    setBooks(createSortedBooks(bookCount));
+    setSelectedIndex(null);
+    setActiveIndex(null);
+    setRunning(false);
+    setMessage("");
+  }
+
+  function selectBook(index) {
+    if (running) {
+      return;
+    }
+
+    setSelectedIndex(index);
+    setActiveIndex(null);
+    setMessage(`Selected book: ${books[index].name}`);
+  }
+
+  async function runSearch() {
+    if (selectedIndex === null) {
+      setMessage("Select a book first.");
+      return;
+    }
+
+    const currentRunId = runId.current + 1;
+    runId.current = currentRunId;
+
+    const targetName = books[selectedIndex].name;
+    const moves = getBinarySearchMoves(books, targetName);
+
+    setRunning(true);
+    setActiveIndex(null);
+    setMessage(`Searching for ${targetName}...`);
+
+    for (const move of moves) {
+      if (runId.current !== currentRunId) {
+        return;
+      }
+
+      if (move.type === "compare") {
+        setActiveIndex(move.index);
+        await new Promise((resolve) => setTimeout(resolve, speed));
+      }
+
+      if (move.type === "found") {
+        setActiveIndex(move.index);
+        setMessage(`Found ${targetName} at position ${move.index + 1}.`);
+      }
+
+      if (move.type === "not-found") {
+        setActiveIndex(null);
+        setMessage(`${targetName} was not found.`);
+      }
+    }
+
+    if (runId.current === currentRunId) {
+      setRunning(false);
+    }
+  }
+
+  function stopSearch() {
+    runId.current += 1;
+    setRunning(false);
+    setActiveIndex(null);
+    setMessage("Binary search stopped.");
+  }
+
+  function createSortedBooks(count) {
+    return createBooks(count).sort((left, right) =>
+      left.name.localeCompare(right.name)
+    );
+  }
+
+  return (
+    <main className="visualizer">
+      <div className="page-heading">
+        <div>
+          <p className="eyebrow">Searching</p>
+          <h1>Binary Search</h1>
+        </div>
+
+        <p>
+          Select a sorted book collection and watch binary search narrow the
+          search range.
+        </p>
+      </div>
+
+      <section className="controls">
+        <label>
+          Books: {count}
+          <input
+            type="range"
+            min="3"
+            max="50"
+            value={count}
+            disabled={running}
+            onChange={(event) => {
+              const nextCount = Number(event.target.value);
+              setCount(nextCount);
+              generateBooks(nextCount);
+            }}
+          />
+        </label>
+
+        <label>
+          Delay: {speed}ms
+          <input
+            type="range"
+            min="100"
+            max="1500"
+            step="100"
+            value={speed}
+            disabled={running}
+            onChange={(event) => setSpeed(Number(event.target.value))}
+          />
+        </label>
+
+        <div className="button-row">
+          <button disabled={running} onClick={() => generateBooks()}>
+            Random
+          </button>
+
+          <button
+            disabled={running || selectedIndex === null}
+            onClick={runSearch}
+          >
+            Run
+          </button>
+
+          <button disabled={!running} onClick={stopSearch}>
+            Stop
+          </button>
+        </div>
+      </section>
+
+      {message && <p className="message">{message}</p>}
+
+      <section className="bookshelf binary-bookshelf">
+        {books.map((book, index) => (
+          <button
+            className={[
+              "book",
+              selectedIndex === index ? "book-target" : "",
+              activeIndex === index ? "book-searching" : ""
+            ].join(" ")}
+            style={{ backgroundColor: book.color }}
+            key={`${book.name}-${index}`}
+            disabled={running}
+            onClick={() => selectBook(index)}
+          >
+            {book.name}
+          </button>
+        ))}
+      </section>
+    </main>
+  );
+}
+
 export default function App() {
   const [page, setPage] = useState("home");
 
@@ -428,12 +604,14 @@ export default function App() {
         </button>
 
         <nav>
+          <button onClick={() => setPage("binarysearch")}>Binary Search</button>
           <button onClick={() => setPage("sorting")}>Sorting</button>
           <button onClick={() => setPage("pathfinding")}>Path Finding</button>
         </nav>
       </header>
 
       {page === "home" && <Home setPage={setPage} />}
+      {page === "binarysearch" && <BinarySearchVisualizer />}
       {page === "sorting" && <SortingVisualizer />}
       {page === "pathfinding" && <PathFindingVisualizer />}
     </>

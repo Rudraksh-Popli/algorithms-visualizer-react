@@ -269,3 +269,43 @@ export function getPathResult(grid, start, goal, algorithm) {
         path
     };
 }
+
+export function getBinarySearchMoves(books, targetName) {
+    const values = books.map((book) => book.name);
+    const moves = [];
+
+    let left = 0;
+    let right = values.length - 1;
+
+    while (left <= right) {
+        const middle = Math.floor((left + right) / 2);
+
+        moves.push({
+            type: "compare",
+            index: middle
+        });
+
+        const comparison = values[middle].localeCompare(targetName);
+
+        if (comparison === 0) {
+            moves.push({
+                type: "found",
+                index: middle
+            });
+
+            return moves;
+        }
+
+        if (comparison < 0) {
+            left = middle + 1;
+        } else {
+            right = middle - 1;
+        }
+    }
+
+    moves.push({
+        type: "not-found"
+    });
+
+    return moves;
+}
