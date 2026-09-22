@@ -12,6 +12,9 @@
 body {
     margin: 0;
     min-width: 320px;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #dcefe8, #f8d9c5);
+    background-attachment: fixed;
 }
 
 button,
@@ -75,10 +78,13 @@ button:disabled {
 }
 
 .home {
-    min-height: 80vh;
+    width: 100%;
+    min-height: calc(100vh - 90px);
+    padding: 60px 5vw;
     display: grid;
     align-content: center;
     gap: 18px;
+    background: transparent;
 }
 
 .eyebrow {
