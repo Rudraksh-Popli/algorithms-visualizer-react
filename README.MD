@@ -317,25 +317,6 @@ This project is designed to help learners:
 - Connect algorithm theory with practical implementation
 - Learn how React state controls an interactive interface
 
-## GitHub Description
-
-Interactive React visualizer for learning sorting algorithms and graph traversal through animated bookshelf sorting and grid-based pathfinding.
-
-## Suggested GitHub Topics
-
-```text
-react
-vite
-javascript
-algorithms
-data-structures
-sorting-algorithms
-pathfinding
-breadth-first-search
-depth-first-search
-visualization
-```
-
 ## License
 
 This project is intended for educational use.
