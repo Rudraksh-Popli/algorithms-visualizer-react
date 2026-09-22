@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   Book,
   createBooks,
@@ -44,6 +44,7 @@ function SortingVisualizer() {
   const [activeIndices, setActiveIndices] = useState([]);
   const [running, setRunning] = useState(false);
   const [message, setMessage] = useState("");
+  const runId = useRef(0);
 
   function generateBooks(worstCase = false) {
     const generated = createBooks(count, worstCase);
@@ -65,12 +66,19 @@ function SortingVisualizer() {
       return;
     }
 
+    const currentRunId = runId.current + 1;
+    runId.current = currentRunId;
+
     setRunning(true);
     setMessage("");
 
     const moves = getSortMoves(books, algorithm);
 
     for (const move of moves) {
+      if (runId.current !== currentRunId) {
+        return;
+      }
+
       setActiveIndices(move.indices);
 
       if (move.type === "swap") {
@@ -87,9 +95,18 @@ function SortingVisualizer() {
       await new Promise((resolve) => setTimeout(resolve, speed));
     }
 
-    setActiveIndices([]);
+    if (runId.current === currentRunId) {
+      setActiveIndices([]);
+      setRunning(false);
+      setMessage("The bookshelf is sorted.");
+    }
+  }
+
+  function stopSort() {
+    runId.current += 1;
     setRunning(false);
-    setMessage("The bookshelf is sorted.");
+    setActiveIndices([]);
+    setMessage("Sorting stopped.");
   }
 
   return (
@@ -129,6 +146,7 @@ function SortingVisualizer() {
             max="500"
             step="10"
             value={speed}
+            disabled={running}
             onChange={(event) => setSpeed(Number(event.target.value))}
           />
         </label>
@@ -149,12 +167,19 @@ function SortingVisualizer() {
           <button disabled={running} onClick={runSort}>
             Run
           </button>
+
+          <button disabled={!running} onClick={stopSort}>
+            Stop
+          </button>
+
           <button disabled={running} onClick={reset}>
             Reset
           </button>
+
           <button disabled={running} onClick={() => generateBooks(false)}>
             Random
           </button>
+
           <button disabled={running} onClick={() => generateBooks(true)}>
             Worst Case
           </button>
@@ -189,6 +214,7 @@ function PathFindingVisualizer() {
   const [path, setPath] = useState([]);
   const [running, setRunning] = useState(false);
   const [message, setMessage] = useState("");
+  const runId = useRef(0);
 
   function cellKey(cell) {
     return `${cell.row}:${cell.column}`;
@@ -241,14 +267,21 @@ function PathFindingVisualizer() {
       return;
     }
 
+    const currentRunId = runId.current + 1;
+    runId.current = currentRunId;
+
     setRunning(true);
     setMessage("");
+    setVisited([]);
+    setPath([]);
 
     const result = getPathResult(grid, start, goal, algorithm);
 
-    setVisited([]);
-
     for (const cell of result.visited) {
+      if (runId.current !== currentRunId) {
+        return;
+      }
+
       setVisited((current) => [...current, cell]);
       await new Promise((resolve) => setTimeout(resolve, 20));
     }
@@ -258,11 +291,25 @@ function PathFindingVisualizer() {
     }
 
     for (const cell of result.path) {
+      if (runId.current !== currentRunId) {
+        return;
+      }
+
       setPath((current) => [...current, cell]);
       await new Promise((resolve) => setTimeout(resolve, 50));
     }
 
+    if (runId.current === currentRunId) {
+      setRunning(false);
+    }
+  }
+
+  function stopPathFinding() {
+    runId.current += 1;
     setRunning(false);
+    setVisited([]);
+    setPath([]);
+    setMessage("Pathfinding stopped.");
   }
 
   return (
@@ -279,27 +326,51 @@ function PathFindingVisualizer() {
         <select
           value={algorithm}
           disabled={running}
-          onChange={(event) => setAlgorithm(event.target.value)}
+          onChange={(event) => {
+            setAlgorithm(event.target.value);
+            setVisited([]);
+            setPath([]);
+            setMessage("");
+          }}
         >
           <option value="bfs">Breadth-first Search</option>
           <option value="dfs">Depth-first Search</option>
         </select>
 
         <div className="button-row">
-          <button className={mode === "wall" ? "selected" : ""} onClick={() => setMode("wall")}>
+          <button
+            disabled={running}
+            className={mode === "wall" ? "selected" : ""}
+            onClick={() => setMode("wall")}
+          >
             Wall
           </button>
-          <button className={mode === "start" ? "selected" : ""} onClick={() => setMode("start")}>
+
+          <button
+            disabled={running}
+            className={mode === "start" ? "selected" : ""}
+            onClick={() => setMode("start")}
+          >
             Start
           </button>
-          <button className={mode === "goal" ? "selected" : ""} onClick={() => setMode("goal")}>
+
+          <button
+            disabled={running}
+            className={mode === "goal" ? "selected" : ""}
+            onClick={() => setMode("goal")}
+          >
             Goal
           </button>
           <button onClick={clearGrid} disabled={running}>
             Clear
           </button>
+
           <button onClick={runPathFinding} disabled={running}>
             Run
+          </button>
+
+          <button onClick={stopPathFinding} disabled={!running}>
+            Stop
           </button>
         </div>
       </section>
